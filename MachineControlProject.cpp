@@ -39,11 +39,12 @@ motor floorThreeDoor = motor(PORT13, ratio18_1, false);
 bumper floorOneBumper = bumper(Brain.ThreeWirePort.A);
 bumper floorTwoBumper = bumper(Brain.ThreeWirePort.B);
 bumper floorThreeBumper = bumper(Brain.ThreeWirePort.C);
+led floorThreeLED = led(Brain.ThreeWirePort.H);
 limit floorOneLS = limit(Brain.ThreeWirePort.D);
 limit floorTwoLS = limit(Brain.ThreeWirePort.E);
 limit floorThreeLS = limit(Brain.ThreeWirePort.F);
 led floorTwoLED = led(Brain.ThreeWirePort.G);
-led floorThreeLED = led(Brain.ThreeWirePort.H);
+
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -78,12 +79,11 @@ void playVexcodeSound(const char *soundName) {
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*    Module:       MachineControlProject.cpp                                 */
+/*    Module:       main.cpp                                                  */
 /*    Author:       {Abdullah Khaled}                                         */
 /*    Created:      {3/3/2025}                                                */
 /*    Description:  Code for elevator project for                             */
 /*                  FISD PLTW Machine Control Project                         */
-/*                                                                            */
 /*----------------------------------------------------------------------------*/
 
 // Include the V5 Library
@@ -92,10 +92,12 @@ void playVexcodeSound(const char *soundName) {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-double calculatePController(double kP, double curr, double setpoint) {
+// Calculations for elevator motor speed
+double calculateElevatorSpeed(double kP, double curr, double setpoint) {
   return (setpoint - curr) * kP;
 }
 
+// MathUtil functions
 double max(double a, double max) {
   if (a > max) {
     return max;
@@ -117,26 +119,29 @@ double getDistance() {
 }
 
 double getClosestFloor() {
-  return (round((getDistance() - 22)/55) + 1);
+  return (round((getDistance() - 22) / 55) + 1);
 }
 
-int goToFloor(double floorDist) {
-  double kP = 4.0;
-  elevatorMotor.spin(reverse);
+// Set the elevator speed in rpm based on the distance away from the setpoint
+// With a max speed of 5000 rpm
+int goToHeight(double floorDist) {
+  double kP = 3.0;
   elevatorMotor.setVelocity(
     max(
-      calculatePController(kP, getDistance(), floorDist), 
-      5000),
-      rpm);
+      calculateElevatorSpeed(kP, getDistance(), floorDist),
+      5000
+    ),
+    rpm
+  );
+  elevatorMotor.spin(reverse);
   return 0;
 }
 
-bool setpointReached(double curr, double setpoint, double tolerance) {
-  return abs(curr - setpoint) < tolerance;
-}
-
 int openDoor(int floor) {
-  
+  floorOneDoor.setVelocity(50, percent);
+  floorTwoDoor.setVelocity(50, percent);
+  floorThreeDoor.setVelocity(50, percent);
+
   if (floor == 1) {
     floorOneDoor.spinToPosition(60, degrees);
   }
@@ -149,8 +154,8 @@ int openDoor(int floor) {
   return 0;
 }
 
-int toggleLEDs(bool toggleON) {
-  if (toggleON) {
+int toggleLEDs(bool toggle) {
+  if (toggle) {
     floorTwoLED.on();
     floorThreeLED.on();
   } else {
@@ -160,7 +165,7 @@ int toggleLEDs(bool toggleON) {
   return 0;
 }
 
-//Function to run when the event occurs
+// During maintenance mode, print to screen, open doors, and turn on LEDs
 int maintenanceMode() {
   Brain.Screen.setCursor(5, 5);
   Brain.Screen.print("MAINTENANCE MODE");
@@ -169,15 +174,10 @@ int maintenanceMode() {
   floorTwoDoor.spinToPosition(60, degrees);
   floorThreeDoor.spinToPosition(60, degrees);
 
-   if (floorOneLS.pressing() 
-       && floorTwoLS.pressing() 
-       && floorThreeLS.pressing()) {
-     
+  if (floorOneLS.pressing() && floorTwoLS.pressing() && floorThreeLS.pressing()) {
     toggleLEDs(true);
-    wait(2, seconds);
-    toggleLEDs(false);
-    wait(2, seconds);
   }
+
   return 0;
 }
 
@@ -186,15 +186,12 @@ int main() {
   vexcodeInit();
   // Begin project code
 
-  //After 10 seconds (converted to ms) the elevators will return to floor one
+  // After 10 seconds (converted to ms) floor one downtime will kick in
   Brain.Timer.clear();
   int kUnusedTime = 10 * 1000;
-
-  //Boolean to ensure maintenance mode only runs once
   bool maintenanceLocked = false;
 
-
-  //Store constants for floors and set the floor to floor one
+  // Store constants for floors and set the floor to floor one
   double kFloorTolerance = 5.0;
   double kFloorOneDist = 22.0;
   double kFloorTwoDist = 75.0;
@@ -202,80 +199,72 @@ int main() {
   double distanceSetpoint = kFloorOneDist;
   double currentFloor = 1;
 
-  //Initialize doors
+  // Initialize doors
   floorOneDoor.setPosition(0, degrees);
   floorTwoDoor.setPosition(0, degrees);
   floorThreeDoor.setPosition(0, degrees);
-  floorOneDoor.setVelocity(50, percent);
-  floorTwoDoor.setVelocity(50, percent);
-  floorThreeDoor.setVelocity(50, percent);
 
-  //Initialize screen settings
+  // Initialize screen settings
   Brain.Screen.setCursor(1, 1);
   Brain.Screen.setFont(mono60);
   Brain.Screen.setPenColor(white);
 
-  
   while (true) {
-    Brain.Screen.clearScreen();
-    if (floorOneLS.pressing() 
-        && floorTwoLS.pressing() 
-        && floorThreeLS.pressing()) {
-      
-      maintenanceMode();
-      
+    // If all three limit switches are pressed, toggle on maintenance mode
+    if (floorOneLS.pressing() && floorTwoLS.pressing() && floorThreeLS.pressing()) {
+      if (!maintenanceLocked) {
+        maintenanceLocked = true;
+        maintenanceMode();
+      }
     } else {
-      
+      toggleLEDs(false);
       maintenanceLocked = false;
+      Brain.Screen.clearScreen();
 
-      //Logic for floor selection
-      if (floorThreeBumper.pressing() || floorThreeLS.pressing()) {
+      // Logic for floor selection
+      if (floorOneBumper.pressing() || floorOneLS.pressing()) {
         Brain.Timer.clear();
-        currentFloor = 3;
-        distanceSetpoint = kFloorThreeDist;
+        currentFloor = 1;
+        distanceSetpoint = kFloorOneDist;
       }
       if (floorTwoBumper.pressing() || floorTwoLS.pressing()) {
         Brain.Timer.clear();
         currentFloor = 2;
         distanceSetpoint = kFloorTwoDist;
       }
-      if (floorOneBumper.pressing() || floorOneLS.pressing()) {
+      if (floorThreeBumper.pressing() || floorThreeLS.pressing()) {
         Brain.Timer.clear();
+        currentFloor = 3;
+        distanceSetpoint = kFloorThreeDist;
+      }
+
+      // Logic for floor one default
+      if (Brain.Timer.time(msec) >= kUnusedTime) {
         currentFloor = 1;
         distanceSetpoint = kFloorOneDist;
       }
 
-      //Logic for floor one default
-      if (Brain.Timer.time(msec) >= kUnusedTime) {
-      currentFloor = 1;
-      distanceSetpoint = kFloorOneDist;
-      }
-      
-      goToFloor(distanceSetpoint);
+      goToHeight(distanceSetpoint);
 
       // Telemetry for tuning P gain
-      // Brain.Screen.setCursor(1,1);
       // Brain.Screen.print(distanceSetpoint);
       // Brain.Screen.newLine();
       // Brain.Screen.print(getDistance());
 
-      //Logic for opening doors (must be within tolerances)
+      // Telemetry for displaying the current floor
+      Brain.Screen.setCursor(1, 1);
+      Brain.Screen.print(currentFloor);
+      Brain.Screen.newLine();
+
+      // Logic for opening doors (must be within tolerances)
       if (abs(getDistance() - distanceSetpoint) <= kFloorTolerance) {
         openDoor(currentFloor);
-        //Telemetry for displaying the current floor
-        Brain.Screen.print(currentFloor);
-        Brain.Screen.newLine();
-        
-        //Telemetry for tuning tolerances
-        // Brain.Screen.newLine();
-        // Brain.Screen.print("REACHED");
-        // Brain.Screen.newLine();
-        // Brain.Screen.print(currentFloor);
+        Brain.Screen.print("FLOOR REACHED");
       } else {
         floorOneDoor.spinToPosition(0, degrees);
         floorTwoDoor.spinToPosition(0, degrees);
         floorThreeDoor.spinToPosition(0, degrees);
-      }      
+      }
     }
   }
 }
