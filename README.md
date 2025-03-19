@@ -35,10 +35,12 @@ The CAD for our final design can be found <a href="https://cad.onshape.com/docum
 <h3>Programming</h3>
 For programming, we decided on using one distance sensor and used a P controller to determine the desired velocity of the elevator motor to get to each floor quickly and accurately.
 
-<i>- Abdullah Khaled</i>
 We also struggled with LED logic, so we decided to bypass that in our final design but keep the control logic in case someone else is able to make it work. Our code can be found in the
 MachineControlProject.cpp file, but if you decide to use our design/code be sure to configure your motor and three-wire ports or else it will not work (I found this out the hard way!).
 
 <h3>Final Thoughts</h3>
 Overall, we felt that this project went quite well. Some things we could have done better include ensuring a more stable support for the rack and pinion and implementing LEDs into
 our maintenance mode, but in general there was not much we wanted to improve on.
+
+<br><br>
+<i>- Abdullah Khaled</i>
