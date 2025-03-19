@@ -40,7 +40,7 @@ MachineControlProject.cpp file, but if you decide to use our design/code be sure
 
 <h3>Final Thoughts</h3>
 Overall, we felt that this project went quite well. Some things we could have done better include ensuring a more stable support for the rack and pinion and implementing LEDs into
-our maintenance mode, but in general there was not much we wanted to improve on.
+our maintenance mode, but in general there was not much we wanted to improve on. <a href="https://youtube.com/shorts/fEYcvJ4nfH0?feature=share">Here</a> is the link to see our elevator in action. I hope this repo is helpful for any future projects you might create!
 
 <br><br>
 <i>- Abdullah Khaled</i>
