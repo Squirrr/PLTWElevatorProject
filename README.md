@@ -4,7 +4,7 @@
 <h3>Explanation:</h3>
 This project was made for our PLTW Principles of Engineering (PoE) class during our VEX V5/Robotics Unit. 
 This project asked us to create a machine that completed a specific goal, and we chose to do the elevators. We were tasked with creating an elevator with the following criteria and constraints:
-
+<br>
 Criteria:
 <ul>
 <li>Carriage must go to any floor in any order</li>
@@ -14,6 +14,7 @@ Criteria:
 <li>Return to ground floor after user-determined period of time</li>
 <li>Include a “Maintenance Mode” where the lights blink and all doors open</li>
 </ul>
+<br>
 Constraints:
 <ul>
 <li>Prevent residents from entering elevator shaft</li>
@@ -22,8 +23,7 @@ Constraints:
 </ul>
 
 <h3>Design</h3>
-The CAD for our final design can be found <a href="https://cad.onshape.com/documents/7fc7cdf066143723a8bdc489/w/654f85b88952b507438878c5/e/f4604c28202e600802e5376b?renderMode=0&uiState=67da0cb376fb087c0d7d7448">here</a>
-Some design changes we made included (but are not limited to)
+The CAD for our final design can be found <a href="https://cad.onshape.com/documents/7fc7cdf066143723a8bdc489/w/654f85b88952b507438878c5/e/f4604c28202e600802e5376b?renderMode=0&uiState=67da0cb376fb087c0d7d7448">here</a>. Some design changes we made included (but are not limited to)
 <ul>
   <li>Switching servo-operated doors to motors due to limited 3-wire ports</li>
   <li>Added limit switches instead of bumpers to carriage</li>
