@@ -4,7 +4,7 @@
 <h3>Explanation:</h3>
 This project was made for our PLTW Principles of Engineering (PoE) class during our VEX V5/Robotics Unit. 
 This project asked us to create a machine that completed a specific goal, and we chose to do the elevators. We were tasked with creating an elevator with the following criteria and constraints:
-<br>
+<br><br>
 Criteria:
 <ul>
 <li>Carriage must go to any floor in any order</li>
