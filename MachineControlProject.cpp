@@ -144,12 +144,15 @@ int openDoor(int floor) {
 
   if (floor == 1) {
     floorOneDoor.spinToPosition(60, degrees);
+    return 1;
   }
   if (floor == 2) {
     floorTwoDoor.spinToPosition(60, degrees);
+    return 2;
   }
   if (floor == 3) {
     floorThreeDoor.spinToPosition(60, degrees);
+    return 3;
   }
   return 0;
 }
@@ -167,6 +170,8 @@ int toggleLEDs(bool toggle) {
 
 // During maintenance mode, print to screen, open doors, and turn on LEDs
 int maintenanceMode() {
+  // double initTime = Brain.Timer.time(seconds);
+  // double addTime = 2;
   Brain.Screen.setCursor(5, 5);
   Brain.Screen.print("MAINTENANCE MODE");
 
@@ -174,10 +179,28 @@ int maintenanceMode() {
   floorTwoDoor.spinToPosition(60, degrees);
   floorThreeDoor.spinToPosition(60, degrees);
 
-  if (floorOneLS.pressing() && floorTwoLS.pressing() && floorThreeLS.pressing()) {
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1, 5);
+  Brain.Screen.setFillColor(red);
+   Brain.Screen.setPenColor(black);
+  Brain.Screen.print("MAINTENANCE MODE");
+  Brain.Screen.setPenWidth(10);
+  
+  while (floorOneLS.pressing() && floorTwoLS.pressing() && floorThreeLS.pressing()) {
     toggleLEDs(true);
+    // Brain.Screen.newLine();
+    Brain.Screen.setPenColor(red);
+    Brain.Screen.setFillColor(red);
+    Brain.Screen.drawRectangle(1, 30, 1000, 1000);
+    wait(.5, seconds);
+    Brain.Screen.setPenColor(yellow);
+    Brain.Screen.setFillColor(yellow);
+    Brain.Screen.drawRectangle(1, 30, 1000, 1000);
+    wait(.5, seconds);
   }
-
+  Brain.Screen.setPenColor(black);
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.drawRectangle(1, 30, 1000, 1000);
   return 0;
 }
 
@@ -198,6 +221,8 @@ int main() {
   double kFloorThreeDist = 130.0;
   double distanceSetpoint = kFloorOneDist;
   double currentFloor = 1;
+  int floorReachedFloor = 0;
+  color printColor = orange;
 
   // Initialize doors
   floorOneDoor.setPosition(0, degrees);
@@ -206,7 +231,7 @@ int main() {
 
   // Initialize screen settings
   Brain.Screen.setCursor(1, 1);
-  Brain.Screen.setFont(mono60);
+  Brain.Screen.setFont(mono30);
   Brain.Screen.setPenColor(white);
 
   while (true) {
@@ -217,6 +242,7 @@ int main() {
         maintenanceMode();
       }
     } else {
+      Brain.Screen.setPenColor(black);
       toggleLEDs(false);
       maintenanceLocked = false;
       Brain.Screen.clearScreen();
@@ -252,18 +278,27 @@ int main() {
       // Brain.Screen.print(getDistance());
 
       // Telemetry for displaying the current floor
-      Brain.Screen.setCursor(1, 1);
-      Brain.Screen.print(currentFloor);
-      Brain.Screen.newLine();
-
+      Brain.Screen.setCursor(1, 10);
+      Brain.Screen.print("Floor: ");
+      Brain.Screen.setCursor(1, 17);
+      Brain.Screen.print(floorReachedFloor);
+      Brain.Screen.setPenColor(printColor);
+      Brain.Screen.setFillColor(printColor);
+      Brain.Screen.drawRectangle(30, 30, 1000, 1000);
+      
       // Logic for opening doors (must be within tolerances)
       if (abs(getDistance() - distanceSetpoint) <= kFloorTolerance) {
-        openDoor(currentFloor);
+        floorReachedFloor = openDoor(currentFloor);
+        // floorReachedFloor = currentFloor;
+        Brain.Screen.newLine();
         Brain.Screen.print("FLOOR REACHED");
+        printColor = green;
       } else {
         floorOneDoor.spinToPosition(0, degrees);
         floorTwoDoor.spinToPosition(0, degrees);
         floorThreeDoor.spinToPosition(0, degrees);
+        printColor = orange;
+        Brain.Screen.drawRectangle(30, 30, 1000, 1000);
       }
     }
   }
